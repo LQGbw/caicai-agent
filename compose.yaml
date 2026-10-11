@@ -1,0 +1,33 @@
+services:
+  grocery-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-public.ecr.aws/docker/library/node:22-bookworm-slim}
+    image: grocery-agent:local
+    container_name: grocery-agent
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=384
+    ports:
+      - "127.0.0.1:3100:3000"
+    volumes:
+      - grocery_agent_data:/app/data
+    security_opt:
+      - no-new-privileges=true
+    networks:
+      - default
+      - web
+
+volumes:
+  grocery_agent_data:
+    name: grocery_agent_data
+
+networks:
+  web:
+    external: true

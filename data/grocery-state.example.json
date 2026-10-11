@@ -1,0 +1,20 @@
+{
+  "profile": {
+    "id": "self",
+    "city": null,
+    "shoppingChannels": [],
+    "activityAreas": [],
+    "householdSize": 1,
+    "mealsPerWeek": 3,
+    "budgetPerMeal": null,
+    "maxCookingMinutes": 20,
+    "cookingLevel": "beginner",
+    "dislikesComplexPrep": true,
+    "willingToStock": false,
+    "priceSensitivity": "medium"
+  },
+  "priceObservations": [],
+  "inventory": [],
+  "purchaseRecords": [],
+  "feedback": []
+}

@@ -1,0 +1,16 @@
+caicai.vickykit.top {
+	encode zstd gzip
+
+	basic_auth {
+		vicky {$GROCERY_PASSWORD_HASH}
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+	}
+
+	reverse_proxy grocery-agent:3000
+
+	log
+}

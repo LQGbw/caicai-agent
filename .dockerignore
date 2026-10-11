@@ -1,0 +1,13 @@
+.git
+.next
+node_modules
+coverage
+*.log
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+!.env.example
+!.env.production.example
+data/grocery-state.json
+启动菜菜参谋.command
