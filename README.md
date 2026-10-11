@@ -26,7 +26,10 @@ npm run dev
 
 - 不填写 `OPENAI_API_KEY`：使用可运行的演示模式，支持有限的文字食材和价格解析。
 - 填写密钥：启用图片理解、真实工具调用循环和语音转写。
+- 也可以打开 `/settings` 在页面中配置第三方 API 地址、Key 和模型 ID；Key 只保存在运行环境的私有数据目录。
 - `data/grocery-state.json` 是每个环境的私有运行数据，不进入 Git。首次运行会根据公开的 `data/grocery-state.example.json` 自动创建。
+
+首页 `/` 是适合手机浏览器的对话入口；个人画像和 API 设置分别位于 `/profile`、`/settings`。
 
 ## Docker 运行
 
@@ -39,7 +42,7 @@ docker compose up -d --build
 
 容器只绑定到主机的 `127.0.0.1:3100`，不直接暴露到公网。服务器上应通过 Caddy 或 Nginx 提供 HTTPS 和访问保护。
 
-`data/grocery-state.json` 会保存在名为 `grocery_agent_data` 的 Docker 数据卷中，重建容器不会删除个人画像、价格观察和库存。不要执行 `docker compose down -v`，除非明确希望删除这些数据。
+`data/grocery-state.json` 和页面保存的 `data/ai-settings.json` 会保存在名为 `grocery_agent_data` 的 Docker 数据卷中，重建容器不会删除个人画像、价格观察、库存或 API 设置。不要执行 `docker compose down -v`，除非明确希望删除这些数据。
 
 完整部署流程见 `docs/DEPLOYMENT.md`。
 

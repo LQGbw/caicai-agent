@@ -10,4 +10,5 @@ coverage
 !.env.example
 !.env.production.example
 data/grocery-state.json
+data/ai-settings.json
 启动菜菜参谋.command

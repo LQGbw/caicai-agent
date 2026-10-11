@@ -1,12 +1,14 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
+import { resolveAiSettings } from "@/lib/settings/ai-settings";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ error: "语音转写需要先配置 OPENAI_API_KEY。" }, { status: 503 });
+    const settings = await resolveAiSettings();
+    if (!settings.apiKey) {
+      return NextResponse.json({ error: "请先在 API 设置页配置 Key。" }, { status: 503 });
     }
     const form = await request.formData();
     const audioValue = form.get("audio");
@@ -17,10 +19,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "录音不能超过 12MB。" }, { status: 400 });
     }
 
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const client = new OpenAI({ apiKey: settings.apiKey, baseURL: settings.baseUrl });
     const transcription = await client.audio.transcriptions.create({
       file: audioValue,
-      model: process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe",
+      model: settings.transcriptionModel,
       language: "zh",
       prompt: "这是买菜现场的中文提问，可能包含食材、价格、重量单位和商店名称。",
     });

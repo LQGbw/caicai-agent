@@ -44,7 +44,7 @@ docker compose ps
 curl http://127.0.0.1:3100/api/profile
 ```
 
-不配置 API Key 时会运行演示模式。真实密钥只写入 `.env.production`，不写入 Dockerfile、Compose 文件或 Git。
+不配置 API Key 时会运行演示模式。可以把密钥写入服务器的 `.env.production`，也可以在 HTTPS 页面 `/settings` 中保存。两种方式都不会把密钥写入 Dockerfile、镜像或 Git；页面保存的设置位于私有数据卷。
 
 ## 部署到腾讯云
 
@@ -75,4 +75,4 @@ docker compose logs --tail=100 grocery-agent
 
 ## 数据备份
 
-个人数据位于 Docker 数据卷的 `/app/data/grocery-state.json`。备份文件应离开服务器保存，并且不应连同 `.env.production` 一起分享。
+个人数据位于 Docker 数据卷的 `/app/data/grocery-state.json`；页面保存的模型连接信息位于 `/app/data/ai-settings.json`。备份文件应加密并离开服务器保存，不应公开分享或提交到 Git。

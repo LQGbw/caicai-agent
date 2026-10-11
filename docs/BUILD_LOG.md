@@ -48,3 +48,11 @@ Deliberately not adopted in V0: LangGraph, RAG, MCP, subagents, sandboxing, mult
 - Tencent Cloud could not reach Docker Hub reliably during the first deployment. The base image is now configurable, with Compose defaulting to the official Node image mirrored by AWS Public ECR; the Dockerfile still supports the original Docker Hub image.
 - Added one shared Caddy edge proxy for `caicai.vickykit.top`, automatic HTTPS, and hashed Basic Authentication. The proxy uses an external `web` Docker network so future self-use tools can reuse ports 80/443 without exposing their application ports.
 - Before publishing the source repository, separated the user's live JSON state from the public seed state. Git and Docker build contexts now exclude `data/grocery-state.json`; a fresh environment initializes it from a non-personal example file, while the existing server volume remains unchanged.
+
+## 2026-10-11 — Mobile conversation UI
+
+- Real use exposed that the original landing-page layout was too long and configuration-heavy for a phone at the market.
+- Replaced the home page with a compact conversation flow and a bottom composer for text, camera, and voice.
+- Moved the personal profile to `/profile` and model connection settings to `/settings`.
+- Removed the user-facing tool trace and the explanatory "what it just did" section. Tool execution remains bounded internally, but the shopping interface now shows only evidence and actionable advice.
+- API credentials saved from the settings page are stored only in the server data volume with restrictive file permissions; the browser can read status and a last-four hint, never the plaintext key.

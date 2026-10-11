@@ -10,3 +10,4 @@ node_modules
 coverage
 *.tsbuildinfo
 data/grocery-state.json
+data/ai-settings.json

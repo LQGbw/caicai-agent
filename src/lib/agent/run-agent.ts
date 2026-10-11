@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { agentDecisionJsonSchema, agentDecisionSchema } from "@/lib/domain/schemas";
 import type { AgentDecision, AgentRunInput } from "@/lib/domain/types";
+import { resolveAiSettings } from "@/lib/settings/ai-settings";
 import { runDemoAgent } from "./demo-agent";
 import { executeGroceryTool, safeToolError } from "./tool-executor";
 import { groceryTools } from "./tool-definitions";
@@ -33,10 +34,11 @@ function buildUserContent(input: AgentRunInput) {
 }
 
 export async function runGroceryAgent(input: AgentRunInput): Promise<AgentDecision> {
-  if (!process.env.OPENAI_API_KEY) return runDemoAgent(input);
+  const settings = await resolveAiSettings();
+  if (!settings.apiKey) return runDemoAgent(input);
 
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const model = process.env.OPENAI_MODEL || "gpt-6-luna";
+  const client = new OpenAI({ apiKey: settings.apiKey, baseURL: settings.baseUrl });
+  const model = settings.model;
   const toolTrace: NonNullable<AgentDecision["toolTrace"]> = [];
   let response = await client.responses.create({
     model,

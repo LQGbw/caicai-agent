@@ -17,9 +17,15 @@ Browser (text / photo / recorded audio)
       data/grocery-state.json
 
 Public price source interface ---> Hangzhou MOFCOM weekly-report provider
+
+Settings page ---> validated settings API ---> data/ai-settings.json
 ```
 
 With `OPENAI_API_KEY`, the Responses API chooses function tools. The application executes each call and returns the result until the model emits a structured decision. Without a key, a deterministic demo agent uses the same repository and response type.
+
+The user-facing home page never renders the internal tool trace. It shows the recommendation, named evidence, confidence, storage advice, and easy cooking advice. The profile and model connection forms live on separate routes so the market interaction stays focused.
+
+AI settings are resolved server-side. A setting saved through `/settings` takes precedence over environment variables and is persisted in the private Docker data volume. The browser receives only whether a key exists and its last-four hint; plaintext keys are never returned by the API.
 
 ## Price evidence order
 
