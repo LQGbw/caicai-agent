@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "录音不能超过 12MB。" }, { status: 400 });
     }
 
-    const client = new OpenAI({ apiKey: settings.apiKey, baseURL: settings.baseUrl });
+    const client = new OpenAI({ apiKey: settings.apiKey, baseURL: settings.baseUrl, timeout: 60000, maxRetries: 0 });
     const transcription = await client.audio.transcriptions.create({
       file: audioValue,
       model: settings.transcriptionModel,
@@ -28,10 +28,16 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ text: transcription.text });
   } catch (error) {
-    console.error(error);
+    const code = error instanceof OpenAI.APIError ? error.code : undefined;
+    const status = error instanceof OpenAI.APIError ? error.status : undefined;
+    const message = code === "model_not_found" || status === 404
+      ? "当前服务商未提供已配置的语音转写模型。对话模型不能直接替代；请改用手机键盘语音输入，或在设置中配置可用的转写模型。"
+      : status === 401 || status === 403 ? "语音服务认证失败，请检查设置中的 Key 与模型权限。"
+      : status === 400 ? "服务商不支持当前转写模型或录音格式。请检查语音模型配置，或改用手机键盘语音输入。"
+      : "语音转写暂不可用，请稍后重试，或改用手机键盘的语音输入。";
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "语音转写失败。" },
-      { status: 500 },
+      { error: message },
+      { status: 502 },
     );
   }
 }

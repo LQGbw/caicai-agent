@@ -11,6 +11,10 @@
 
 ## 2026-10-25 — Five-minute learning activity requested by first user
 
+- Further beginner feedback: `invoke` appeared before it was defined. Starter revision 3 introduces Agent, model, tool and context first, uses a plain-language trace, and explains `agent.invoke(...)`, messages and result access before the code exercise. AI instructions now require prerequisites and first-use definitions.
+- Synthetic multimodal checks with the saved Packy configuration: qwen3.7-flash read the test price label correctly; its audio/transcriptions request returned 400 invalid_request; gpt-4o-mini-transcribe returned 503 model_not_found. No purchase or price record was written. Real phone camera/microphone permission and capture remain unverified until the user tests on a phone.
+- Fix the observed mobile compatibility gap: do not label Safari MP4 recording as .webm; choose supported MIME and matching extension, release microphone tracks, avoid simultaneous record/send. Transcription errors are bounded and sanitized. Keep chat/learning/vision on the requested model; do not silently select another ASR service or model.
+
 - Follow-up real-use failure: the reviewed starter mixed coffee examples into Deep Agents and labeled tiny summaries “5 minutes.” Replace them with eight source-focused lessons using weather and research examples, explanatory text, clearly labeled code/pseudocode, and substantive self-checks. This is a content-quality correction, not new scope.
 - Remove fixed duration promises. Show body character count and heuristic reading range (300–500 characters/minute), excluding code/exercises; do not infer mastery from time or checkmarks.
 - Introduce an optional starter content revision. Update only the eight identifiable shipped tasks, keeping plan IDs, imported dates, current task, notes, completed and revisit flags. Never overwrite unrelated imported or AI plans.

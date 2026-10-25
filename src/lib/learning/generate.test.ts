@@ -26,6 +26,9 @@ describe("grounded lessons", () => {
     expect(restored.plans[0].tasks[0].answer).toBe(plan.tasks[0].answer);
     expect(plan.tasks.every((item) => item.excerpt.length >= 500 && item.code && item.codeExplanation)).toBe(true);
     expect(JSON.stringify(plan)).not.toMatch(/咖啡|鸡腿|磨豆/);
+    expect(plan.tasks[0].title).not.toContain("invoke");
+    expect(plan.tasks[0].excerpt).toContain("invoke（调用）");
+    expect(plan.tasks[4].excerpt).toContain("invoke 的中文意思是“调用”");
     expect(readingLabel(plan.tasks[0])).toMatch(/正文 \d+ 字 · 阅读参考/);
     expect(readingLabel({ ...plan.tasks[0], excerpt: "字".repeat(100) })).toContain("1 分钟");
     expect(readingLabel({ ...plan.tasks[0], excerpt: "字".repeat(1600) })).toContain("4–6 分钟");

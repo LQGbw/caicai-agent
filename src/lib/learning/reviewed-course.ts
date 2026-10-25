@@ -2,29 +2,34 @@ import { planSchema, type LearningLibrary, type LearningPlan } from "./plan";
 
 // Teaching notes rewritten from the linked chapters; checked 2026-10-25.
 // Original: Datawhale / 沧海九粟, CC BY-NC-SA 4.0 (text). Adapted notes use the same license.
-export const reviewedCourseRevision = 2;
+export const reviewedCourseRevision = 3;
 const sourceUrl = "https://github.com/datawhalechina/deepagents-in-action";
 const lessons = [
   {
-    chapter: 1, title: "先认识 Agent：一次 invoke，为什么不只问一次模型？",
+    chapter: 1, title: "Agent 是什么？从一句天气问题理解模型与工具",
     goal: "沿着天气示例，说清模型、工具和执行循环分别做了什么。",
-    excerpt: `先带着一个问题阅读：你只问了一次天气，助手为什么可能请求两次模型？第 1 章介绍框架的分层，第 2 章给出天气助手。先把这个最小例子想明白，后面的文件、规划和子任务才有共同基础。
+    excerpt: `先不记框架名，也不假设你会 Python。语言模型接收文字等输入，生成文字或动作请求；工具是程序提供的具体功能，例如查询天气的函数。这里的 Agent（智能体）指把模型与工具连接起来、能根据执行结果继续决定下一步的程序。它不是一个自带所有数据的全知模型。
 
 普通聊天中，应用把问题交给模型，拿到文本后展示。支持工具的助手还有另一条分支：模型不急着写答案，而是返回“请调用这个函数，以及这些参数”。执行函数的是应用或框架，不是模型在脑中运行 Python。函数结果作为消息交回模型，它再判断信息是否足够。
 
-把下面的伪代码当成运行地图，而不是直接可执行的程序。model(context) 可能得到工具请求，也可能直接得到最终回答。execute_checked 表示按注册关系执行工具，实际业务还需校验参数和权限。结果放回上下文，下一次模型请求才能读到；缺少这一步，模型即使选对工具，也没有获得数据。
+这个来回过程叫执行循环。“上下文”就是本次交给模型看的消息和信息；工具返回结果要补进上下文，下一次模型请求才能读到。缺少这一步，模型即使选对工具，也没有获得数据。下面先用文字读这条信息流，不急着理解 while 等编程语法。
 
-套到课程的天气例子：用户问北京天气 → 模型可能请求 get_weather，参数是北京 → Python 函数返回演示天气 → 模型读到结果后组织回答。外层的 agent.invoke(...) 包住整个过程，所以一次调用不等于一次模型请求。这是一种可能路径，不承诺每次都选同样的工具。
+套到课程的天气例子：用户问北京天气 → 模型可能请求天气工具 get_weather，参数是北京 → Python 函数返回演示天气 → 模型读到结果后组织回答。第一次模型请求可能只是选工具，第二次才基于结果回答。这是一种可能路径，不承诺每次都选同样的工具。
+
+课程代码把“提交问题，让助手开始运行并取得结果”的入口叫 invoke（调用）。agent.invoke(...) 中 agent 是已创建的助手，点号表示使用它的 invoke 方法，括号里放输入。你调用这个入口一次，内部仍可请求模型多次。第 5 课再结合真正代码逐行阅读，现在先理解它不是新模型，也不是另一种工具。
 
 还要区分两个边界。有工具可用不等于每次必须调用：解释 Agent 这个词，通常不需要天气工具。循环也不保证顺利完成：接口报错、达到运行限制或等待审批，都可能让执行停止或暂停。流畅的最终回答，本身不足以证明助手正确获取了信息。`,
-    code: `# 执行过程伪代码，不是 Deep Agents API
-reply = model(context)
-while reply.requests_tools:
-    results = execute_checked(reply.tool_calls)
-    context = context + [reply] + results
-    reply = model(context)
-return reply.final_text`,
-    codeExplanation: "reply 是本次模型响应；context 是下一次请求携带的消息。while 表示工具结果返回后继续判断，不是固定流水线。execute_checked 是讲解占位符，不是可导入的函数。",
+    code: `用户：北京天气如何？
+  ↓
+模型：请求天气工具，城市填“北京”
+  ↓
+程序：执行工具，把结果加入消息
+  ↓
+模型：阅读结果 → 回答，或继续请求工具
+
+invoke = 外层“提交输入并运行助手”的入口
+# 文字推演，不是可执行代码或真实运行记录`,
+    codeExplanation: "一次外层调用可以包住多次模型与工具交互。图里的“程序”是框架或应用；模型提出调用，不是自己执行 Python 函数。先沿着箭头复盘，不需要背函数名。",
     practice: "补齐链路：用户问天气 → ①谁决定调用哪个工具？→ ②谁执行 Python 函数？→ ③函数结果交给谁？然后解释：为什么一次 invoke 可能请求两次模型？如果问题是“什么是 Agent”，还必须查天气吗？",
     answer: "①模型提出调用及参数；②框架或应用执行已注册函数；③结果放回上下文交给模型。第一次模型响应可以是工具请求，第二次读到工具结果再回答。“什么是 Agent”不依赖天气，因此有工具不代表必须用。",
   },
@@ -108,7 +113,9 @@ read_file → 需要时回查原材料`,
 
 下面是教学改写片段，不是独立脚本。函数提供可被请求的动作；tools=[get_weather] 把函数注册给助手；system_prompt 写目标和边界；create_deep_agent 装配并返回可调用的 Agent。执行创建步骤，不等于已经查询天气。
 
-invoke 提交真正的问题。messages 中 role 标记消息来自用户，content 是用户文字，框架据此启动循环。result 保存返回消息，[-1] 取列表最后一项，content 取其内容，用来展示最终回复。调试全部消息和展示最后文本不是同一用途。
+invoke 的中文意思是“调用”。在这里 agent 是创建好的助手对象，agent.invoke(...) 表示把括号内的输入交给它运行，正常完成后返回结果。它不是模型名，也不是查询天气的工具。调用期间可能发生多轮模型请求和工具执行；程序通常在取得返回值后才继续后面的 print。
+
+messages 是输入中的消息列表；role 标记这条消息来自用户，content 是用户的文字。result 是接收返回结果的变量，result["messages"] 取返回的消息列表，[-1] 取最后一条，.content 取其文字。调试全部消息和展示最后回答是两种用途，不要把 messages 这个列表误认成一段提示词。
 
 特别看函数体：不论输入哪个城市，都拼出固定的晴天句子。工具叫 get_weather，不会自动获得实时数据。调用成功最多证明链路工作；真实查询还需接可靠天气源，明确地点、时间等条件。
 
@@ -129,7 +136,7 @@ result = agent.invoke({
     "messages": [{"role": "user", "content": "北京天气如何？"}]
 })
 print(result["messages"][-1].content)`,
-    codeExplanation: "def 定义函数；city: str 标记输入类型；-> str 标记输出类型；三引号是工具说明。tools 注册函数，不是在此处执行函数。invoke 才提交问题。model 必须预先配置，代码中没有可用密钥。",
+    codeExplanation: "def 定义函数；city: str 标记输入类型；-> str 标记输出类型；三引号是工具说明。tools 注册函数，不是在此处执行函数。agent.invoke(...) 把消息交给已创建的助手运行，result 保存返回结果；print 在调用返回后展示最后一条消息。model 必须预先配置，代码中没有可用密钥。",
     practice: "指出哪行注册工具、哪行开始执行、哪行读取最终回答。把问题换成上海，函数返回如何变化？为什么这仍不能证明它知道上海当前的天气？只改 system_prompt 能修好真实数据缺失吗？",
     answer: 'tools=[get_weather] 注册，agent.invoke(...) 开始执行，print(result["messages"][-1].content) 展示最后消息。若调用工具，city 改成上海，但仍固定晴天。没有联网查询，改提示词也无法凭空补上数据源。',
   },

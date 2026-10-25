@@ -93,7 +93,7 @@ export default function SettingsPage() {
             <label>API 地址<input type="text" value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="https://api.example.com/v1" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} /><small>填写服务商的 API Base URL。会清理空格、补齐 https://，并移除误填的 /chat/completions 等接口后缀。官方 OpenAI 可留空。</small></label>
             <label>API Key<input type="password" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder={settings.apiKeyConfigured ? "留空表示保持现有 Key" : "输入新 Key"} autoComplete="new-password" /><small>保存后不再显示明文，仅显示末四位。</small></label>
             <label>对话 / 学习模型 ID<input value={model} onChange={(event) => setModel(event.target.value)} placeholder="例如服务商支持的 qwen-flash" /><small>Demo 优先低成本文本模型。模型 ID 必须以你购买的服务商列表为准。</small></label>
-            <label>语音转写模型 ID<input value={transcriptionModel} onChange={(event) => setTranscriptionModel(event.target.value)} placeholder="gpt-4o-mini-transcribe" /><small>第三方服务如果不支持语音转写，语音按钮仍会报错，不影响文字和照片。</small></label>
+            <label>语音转写模型 ID<input value={transcriptionModel} onChange={(event) => setTranscriptionModel(event.target.value)} placeholder="填写服务商实际提供的转写模型" /><small>与对话共用上面的地址和 Key，但需要支持音频转写的模型。qwen3.7-flash 可用于对话、学习和看图，不能直接用于此转写接口；服务商不支持时，可用手机键盘自带的语音输入。</small></label>
           </div>
           {notice && <p className="form-notice" role="status">{notice}</p>}
           <div className="settings-actions"><button className="save-button" disabled={saving}>{saving ? "正在安全保存…" : "保存 API 设置"}</button>

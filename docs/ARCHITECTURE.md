@@ -33,9 +33,9 @@ The user-facing home page never renders the internal tool trace. It shows the re
 
 AI settings are resolved server-side. A setting saved through `/settings` takes precedence over environment variables and is persisted in the private Docker data volume. The browser receives only whether a key exists and its last-four hint; plaintext keys are never returned by the API.
 
-## Price evidence order
-
 The learning starter has an optional `contentRevision`. Browser hydration upgrades only the known eight reviewed task IDs for the exact Datawhale repository. Personal flags, notes, plan identity, import date and current task survive; other imports are untouched. Lessons support separate escaped code and explanation fields, never executable source HTML. Reading ranges use an explicit character-count heuristic, not a fixed five-minute promise or a mastery assessment.
+
+## Price evidence order
 
 1. Same user's observations at the same store
 2. Same user's observations in the same city

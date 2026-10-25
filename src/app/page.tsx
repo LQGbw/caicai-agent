@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AgentDecision } from "@/lib/domain/types";
+import { recordingFilename, recordingMimeType } from "@/lib/media/recording";
 
 const recommendationLabel = { buy: "可以买", skip: "先不买", uncertain: "信息不足" };
 const verdictLabel = { low: "偏低", normal: "正常", high: "偏高", insufficient_data: "样本不足" };
@@ -54,6 +55,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
+  const mediaStream = useRef<MediaStream | null>(null);
   const audioChunks = useRef<Blob[]>([]);
   const endRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -67,10 +69,20 @@ export default function Home() {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [conversation, loading]);
 
+  useEffect(() => () => {
+    const recorder = mediaRecorder.current;
+    if (recorder) {
+      recorder.onstop = null;
+      recorder.ondataavailable = null;
+      if (recorder.state !== "inactive") recorder.stop();
+    }
+    mediaStream.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     const question = message.trim();
-    if ((!question && !image) || loading) return;
+    if ((!question && !image) || loading || recording) return;
     const form = new FormData();
     form.append("message", question);
     if (image) form.append("image", image);
@@ -93,37 +105,56 @@ export default function Home() {
 
   async function toggleRecording() {
     if (recording && mediaRecorder.current) {
+      setLoading(true);
       mediaRecorder.current.stop();
       setRecording(false);
       return;
     }
+    if (loading) return;
     try {
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw new Error("录音需要安全的 HTTPS 页面和支持麦克风的浏览器，请在手机系统浏览器中打开。");
+      if (typeof MediaRecorder === "undefined") throw new Error("当前浏览器不支持网页录音，请改用手机键盘自带的语音输入。");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      mediaStream.current = stream;
+      const mimeType = recordingMimeType((mime) => MediaRecorder.isTypeSupported(mime));
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       audioChunks.current = [];
       recorder.ondataavailable = (event) => audioChunks.current.push(event.data);
       recorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
-        const audio = new File(audioChunks.current, "grocery-question.webm", { type: recorder.mimeType || "audio/webm" });
-        const form = new FormData();
-        form.append("audio", audio);
+        mediaStream.current = null;
+        mediaRecorder.current = null;
         setLoading(true);
         try {
+          const actualMime = recorder.mimeType || audioChunks.current.find((chunk) => chunk.type)?.type || "";
+          const audio = new File(audioChunks.current, recordingFilename(actualMime), { type: actualMime });
+          const form = new FormData();
+          form.append("audio", audio);
           const response = await fetch("/api/transcribe", { method: "POST", body: form });
           const data = await response.json();
           if (!response.ok) throw new Error(data.error || "转写失败");
-          setMessage(data.text);
+          setMessage((current) => current.trim() ? `${current}\n${data.text}` : data.text);
         } catch (caught) {
           setConversation((items) => [...items, { id: crypto.randomUUID(), role: "error", text: caught instanceof Error ? caught.message : "转写失败" }]);
         } finally {
           setLoading(false);
         }
       };
+      recorder.onerror = () => {
+        recorder.onstop = null;
+        stream.getTracks().forEach((track) => track.stop());
+        mediaStream.current = null; mediaRecorder.current = null;
+        setRecording(false); setLoading(false);
+        setConversation((items) => [...items, { id: crypto.randomUUID(), role: "error", text: "录音中断，请重试或使用手机键盘语音输入。" }]);
+      };
       recorder.start();
       mediaRecorder.current = recorder;
       setRecording(true);
-    } catch {
-      setConversation((items) => [...items, { id: crypto.randomUUID(), role: "error", text: "无法使用麦克风，请检查浏览器权限。" }]);
+    } catch (error) {
+      mediaStream.current?.getTracks().forEach((track) => track.stop());
+      mediaStream.current = null; setRecording(false); setLoading(false);
+      const text = error instanceof DOMException ? "无法使用麦克风，请检查浏览器权限，或改用手机键盘的语音输入。" : error instanceof Error ? error.message : "录音失败，请稍后重试。";
+      setConversation((items) => [...items, { id: crypto.randomUUID(), role: "error", text }]);
     }
   }
 
@@ -150,8 +181,8 @@ export default function Home() {
           <textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={1} placeholder="说说你看到了什么…" aria-label="买菜问题" />
           <div className="composer-actions">
             <label className="icon-button" title="拍照或选择照片"><input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" capture="environment" onChange={(event) => setImage(event.target.files?.[0] ?? null)} /><span aria-hidden>▣</span><b>照片</b></label>
-            <button type="button" className={`icon-button ${recording ? "recording" : ""}`} onClick={toggleRecording}><span aria-hidden>●</span><b>{recording ? "停止" : "语音"}</b></button>
-            <button className="send-button" type="submit" disabled={loading || (!message.trim() && !image)} aria-label="发送">↑</button>
+            <button type="button" disabled={loading} className={`icon-button ${recording ? "recording" : ""}`} onClick={toggleRecording}><span aria-hidden>●</span><b>{recording ? "停止" : "语音"}</b></button>
+            <button className="send-button" type="submit" disabled={loading || recording || (!message.trim() && !image)} aria-label="发送">↑</button>
           </div>
         </form>
         <p className="composer-note">价格观察会写入个人历史，不会自动记为已购买。</p>
