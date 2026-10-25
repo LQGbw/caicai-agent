@@ -1,5 +1,11 @@
 # Architecture
 
+## Learning activity experiment
+
+`/learn` is a bounded multi-scenario exploration beside the grocery app. `/api/learning/source` reads only the public README of a validated GitHub repository, using a fixed GitHub API host, bounded response size, timeout, short cache and request budget. It never reads private model settings or invokes a paid model.
+
+The browser splits provided Markdown into source-linked reading slices and recall prompts. This is explicitly a rule-based preview, not AI codebase analysis. Versioned, validated browser-local state stores task selection, self-reported completion, revisit flags and notes. Backup export/import supports manual transfer; account sync and verified skill assessment are not implemented.
+
 ```text
 Browser (text / photo / recorded audio)
              |

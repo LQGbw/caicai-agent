@@ -1,5 +1,13 @@
 # Build log
 
+## 2026-10-25 — Five-minute learning activity requested by first user
+
+- The user clarified the product is a general practice and learning assistant, with grocery, coffee, and fitness as initial scenarios, and explicitly requested a GitHub/material-to-learning-task demo for spare five-minute sessions.
+- This is a new requested validation direction, not evidence of retention or a completed usage study. Add a bounded `/learn` experiment without rewriting the grocery workflow.
+- The public demo splits provided source sections into short reading and recall tasks without a paid model. Label this limitation; it is not a full codebase analysis or personalized AI curriculum.
+- Keep progress and notes in the current browser, separate from the server's private grocery state. Checkbox completion is self-reported activity, not verified mastery.
+- Public GitHub import reads only public README content through a fixed GitHub API host. Private settings and model APIs remain protected at the proxy.
+
 ## 2026-09-23 — V0 vertical slice
 
 - Started from an empty repository.

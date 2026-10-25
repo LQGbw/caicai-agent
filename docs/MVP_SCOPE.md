@@ -1,5 +1,9 @@
 # V0 scope
 
+## 2026-10-25 learning experiment
+
+The owner explicitly expanded the validation direction to a general activity and learning assistant. A separate `/learn` demo supports public GitHub README or pasted material, short source-based tasks, checkboxes, notes and browser-local resume. This does not replace the grocery scope below. Full repository analysis, model-generated curricula, automatic mastery judgments and cloud progress sync remain outside this experiment.
+
 ## Core job
 
 During a real grocery trip, answer: “What is this, is this price reasonable, and should I buy it?” Then remember the observation.

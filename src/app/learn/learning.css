@@ -1,0 +1,66 @@
+.learning-page { max-width: 1080px; margin: auto; padding: 40px 24px 70px; }
+.learning-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
+.learning-eyebrow { color: var(--green); font-size: 13px; font-weight: 700; letter-spacing: .06em; }
+.learning-heading h1 { font-size: clamp(27px, 5vw, 40px); margin: 12px 0; letter-spacing: -.035em; }
+.learning-heading p:not(.learning-eyebrow) { color: var(--muted); line-height: 1.6; }
+.learning-page h2 { font-size: 21px; line-height: 1.5; margin-top: 0; }
+.learning-page h3 { font-size: 15px; }
+.learning-page button { cursor: pointer; }
+.learning-page button:disabled { opacity: .5; cursor: not-allowed; }
+.learning-page button:focus-visible, .learning-page input:focus-visible, .learning-page textarea:focus-visible, .learning-page select:focus-visible { outline: 3px solid #9bd5b4; outline-offset: 2px; }
+.learning-primary, .learning-secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--line); font-size: 14px; font-weight: 700; }
+.learning-primary { background: var(--green); color: white; border-color: var(--green); }
+.learning-secondary { background: white; color: var(--green); cursor: pointer; }
+.learning-import, .learning-current, .learning-task-list { background: white; border: 1px solid var(--line); border-radius: 20px; padding: 24px; }
+.learning-import { max-width: 760px; margin-bottom: 24px; }
+.learning-import form { display: grid; gap: 18px; }
+.learning-import label, .learning-note, .learning-overview label { display: grid; gap: 8px; font-size: 14px; font-weight: 700; }
+.learning-import input, .learning-import textarea, .learning-note textarea, .learning-overview select { width: 100%; min-height: 46px; border: 1px solid #ccd9ce; border-radius: 12px; background: #fcfdfb; color: var(--ink); padding: 12px; font-size: 16px; }
+.learning-import textarea, .learning-note textarea { resize: vertical; line-height: 1.65; }
+.learning-import label small { color: var(--muted); font-weight: 400; }
+.learning-tabs, .learning-filters { display: flex; gap: 6px; margin-bottom: 20px; }
+.learning-tabs button, .learning-filters button { background: var(--paper); border: 0; padding: 10px 14px; color: var(--muted); border-radius: 10px; }
+.learning-tabs button[aria-pressed="true"], .learning-filters button[aria-pressed="true"] { color: var(--green); background: var(--green-soft); font-weight: 700; }
+.learning-import-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.learning-footnote { font-size: 12px; color: var(--muted); line-height: 1.65; margin: 16px 0 0; }
+.learning-alert, .learning-notice { padding: 14px; border-radius: 12px; line-height: 1.6; }
+.learning-notice { background: var(--green-soft); color: var(--green-strong); }
+.learning-alert { background: #fff0e5; color: #8c3c16; }
+.learning-overview { display: grid; grid-template-columns: 1fr 220px; gap: 24px; align-items: end; margin: 25px 0 20px; }
+.learning-overview strong { display: block; font-size: 27px; margin-bottom: 10px; }
+.learning-overview small { color: var(--muted); font-size: 13px; font-weight: 400; }
+.learning-overview progress { display: block; width: 100%; height: 8px; accent-color: var(--green); }
+.learning-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.learning-task-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; margin-bottom: 16px; }
+.learning-source { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.learning-source a { color: var(--green); text-decoration: underline; }
+.learning-current details { margin: 22px 0; }
+.learning-current summary { cursor: pointer; color: var(--green); font-weight: 700; font-size: 14px; }
+.learning-excerpt { font: inherit; font-size: 15px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; padding: 18px; margin: 12px 0; border-radius: 12px; background: var(--paper); }
+.learning-practice { border-left: 3px solid var(--green); padding: 1px 0 1px 15px; margin-bottom: 22px; }
+.learning-practice h3 { margin: 4px 0 8px; }
+.learning-practice p { margin: 0; font-size: 14px; line-height: 1.7; color: #405047; }
+.learning-checks { display: flex; flex-wrap: wrap; gap: 18px; margin: 22px 0; }
+.learning-checks label { display: flex; align-items: center; gap: 7px; min-height: 44px; font-size: 14px; cursor: pointer; }
+.learning-page input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--green); flex-shrink: 0; cursor: pointer; }
+.learning-task-list { padding: 20px 12px; }
+.learning-task-list h2 { font-size: 16px; padding-left: 8px; }
+.learning-filters { padding-left: 8px; gap: 4px; }
+.learning-filters button { font-size: 12px; padding: 8px 10px; }
+.learning-task-list ol { padding: 0; list-style: none; margin: 0; max-height: 620px; overflow-y: auto; }
+.learning-task-list li { display: flex; align-items: flex-start; gap: 9px; border-radius: 12px; padding: 12px 9px; }
+.learning-task-list li.is-active { background: var(--green-soft); }
+.learning-task-list li button { border: 0; background: none; color: var(--ink); padding: 0; text-align: left; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.learning-task-list li small { display: block; color: var(--muted); margin-top: 4px; font-size: 11px; }
+.learning-footer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.6; }
+.learning-footer > div { display: flex; gap: 10px; }
+.learning-footer input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+@media (max-width: 740px) {
+  .learning-page { padding: 24px 12px 50px; }
+  .learning-heading { display: block; }
+  .learning-workspace, .learning-overview { grid-template-columns: minmax(0, 1fr); }
+  .learning-overview { gap: 16px; }
+  .learning-import, .learning-current { padding: 19px; }
+  .learning-current > .learning-primary { width: 100%; }
+  .learning-task-list ol { max-height: 360px; }
+}
