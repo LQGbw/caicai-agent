@@ -42,7 +42,7 @@ function DecisionBubble({ decision }: { decision: AgentDecision }) {
       </div>
       <footer>
         <span>{decision.observationSaved ? "✓ 已记入个人价格历史" : "本次未记录价格"}</span>
-        {decision.mode === "demo" && <Link href="/settings">演示模式 · 去配置 API</Link>}
+        {decision.mode === "demo" && <Link href="/settings" prefetch={false}>演示模式 · 去配置 API</Link>}
       </footer>
     </article>
   );

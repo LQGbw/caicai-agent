@@ -11,6 +11,9 @@
 
 ## 2026-10-25 — Five-minute learning activity requested by first user
 
+- Production access failure: the user saw two repeated login dialogs just opening `/`. Caddy logs confirmed simultaneous `/profile` and `/settings` requests with `Next-Router-Prefetch: 1` returning 401 and repeated prefetch attempts. Public landing pages must not preload Basic-Auth-protected routes.
+- Use deliberate document navigation for protected navigation items; disable all remaining navigation prefetch, including the demo settings link. Keep proxy authentication intact. Verify with the production build and an unauthenticated entry, not only development mode (where Next prefetch is disabled).
+
 - Further beginner feedback: `invoke` appeared before it was defined. Starter revision 3 introduces Agent, model, tool and context first, uses a plain-language trace, and explains `agent.invoke(...)`, messages and result access before the code exercise. AI instructions now require prerequisites and first-use definitions.
 - Synthetic multimodal checks with the saved Packy configuration: qwen3.7-flash read the test price label correctly; its audio/transcriptions request returned 400 invalid_request; gpt-4o-mini-transcribe returned 503 model_not_found. No purchase or price record was written. Real phone camera/microphone permission and capture remain unverified until the user tests on a phone.
 - Fix the observed mobile compatibility gap: do not label Safari MP4 recording as .webm; choose supported MIME and matching extension, release microphone tracks, avoid simultaneous record/send. Transcription errors are bounded and sanitized. Keep chat/learning/vision on the requested model; do not silently select another ASR service or model.
