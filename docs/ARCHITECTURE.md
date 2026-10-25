@@ -35,6 +35,8 @@ AI settings are resolved server-side. A setting saved through `/settings` takes 
 
 ## Price evidence order
 
+The learning starter has an optional `contentRevision`. Browser hydration upgrades only the known eight reviewed task IDs for the exact Datawhale repository. Personal flags, notes, plan identity, import date and current task survive; other imports are untouched. Lessons support separate escaped code and explanation fields, never executable source HTML. Reading ranges use an explicit character-count heuristic, not a fixed five-minute promise or a mastery assessment.
+
 1. Same user's observations at the same store
 2. Same user's observations in the same city
 3. Compatible public retail source for the city

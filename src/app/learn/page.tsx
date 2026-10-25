@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import {
-  createLearningPlan, emptyLibrary, librarySchema, planSchema, sampleMaterial, storageKey,
+  createLearningPlan, emptyLibrary, librarySchema, planSchema, readingLabel, sampleMaterial, storageKey,
   type LearningLibrary, type LearningTask, type LearningPlan,
 } from "@/lib/learning/plan";
+import { isOutdatedReviewedPlan, upgradeReviewedLibrary } from "@/lib/learning/reviewed-course";
 import "./learning.css";
 
 export default function LearningPage() {
@@ -23,17 +24,32 @@ export default function LearningPage() {
   const [chapter, setChapter] = useState("");
   const [goal, setGoal] = useState("我是新手，先理解 Agent 的原理，用手机每天学一点，之后能用于自己的生活助手项目。");
 
-  /* Browser storage is unavailable during SSR. This one-time hydration deliberately
-     restores validated external state after mount; it does not derive state from props. */
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // Restore browser-local records, then apply only the identified starter content revision.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) setLibrary(librarySchema.parse(JSON.parse(raw)));
-    } catch { setStorageError("已有进度无法读取，暂未覆盖。请先导出备份，或换一个浏览器使用。"); }
-    setReady(true);
+    let cancelled = false;
+    async function restore() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        let restored = raw ? librarySchema.parse(JSON.parse(raw)) : emptyLibrary;
+        if (restored.plans.some(isOutdatedReviewedPlan)) {
+          try {
+            const response = await fetch("/api/learning/starter", { signal: AbortSignal.timeout(8000), cache: "no-store" });
+            if (!response.ok) throw new Error("课程更新暂不可用");
+            restored = upgradeReviewedLibrary(restored, planSchema.parse(await response.json()));
+            if (cancelled) return;
+            setLibrary(restored);
+            try { localStorage.setItem(storageKey, JSON.stringify(restored)); }
+            catch { setStorageError("课程已载入，但当前浏览器无法保存更新，请导出备份。"); }
+            setNotice("已更新这份入门课程的解释、代码与练习。你的勾选、笔记和阅读位置未更改；建议回看修订内容。");
+          } catch { if (!cancelled) setNotice("课程更新暂未完成，旧内容和进度保留。可点击“更新本课程”重试。"); }
+        }
+        if (!cancelled) setLibrary(restored);
+      } catch { if (!cancelled) setStorageError("已有进度无法读取，暂未覆盖。请先导出备份，或换一个浏览器使用。"); }
+      finally { if (!cancelled) setReady(true); }
+    }
+    void restore();
+    return () => { cancelled = true; };
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   function commit(next: LearningLibrary) {
     setLibrary(next);
@@ -56,12 +72,16 @@ export default function LearningPage() {
     setShowImport(false); setNotice("学习任务已保存，可以随时停下，下次从当前任务继续。");
   }
 
-  async function startReviewed() {
+  async function startReviewed(updateExisting = false) {
     setBusy(true); setNotice("");
     try {
       const response = await fetch("/api/learning/starter");
       if (!response.ok) throw new Error("入门任务读取失败，请稍后重试。");
-      acceptPlan(await response.json());
+      const fresh = planSchema.parse(await response.json());
+      if (updateExisting) {
+        commit(upgradeReviewedLibrary(library, fresh));
+        setNotice("课程内容已更新，勾选、笔记和阅读位置保留。建议回看修订内容。");
+      } else acceptPlan(fresh);
     } catch (error) { setNotice((error as Error).message); }
     finally { setBusy(false); }
   }
@@ -138,7 +158,7 @@ export default function LearningPage() {
       {(!plan || showImport) && <section className="learning-import">
         <h2>Deep Agents：先从真正的第一课开始</h2>
         <p>已按第 1、2 章整理 8 个入门任务，先讲概念，再看例子和做小练习。不需要配置 API 即可阅读。</p>
-        <button className="learning-primary" disabled={busy} onClick={startReviewed}>开始 Deep Agents 入门 →</button>
+        <button className="learning-primary" disabled={busy} onClick={() => startReviewed()}>开始 Deep Agents 入门 →</button>
         <p className="learning-footnote">这是核对原文后整理的课程，不是模型实时生成。AI 按个人目标编排可使用下方导入。</p>
       </section>}
       {(!plan || showImport) && <section className="learning-import">
@@ -158,7 +178,8 @@ export default function LearningPage() {
       </section>}
       {notice && <p className="learning-notice" role="status">{notice}</p>}
       {plan && active && <>
-        {!plan.method && <div className="learning-alert"><p>这是旧版 README 切片任务，未经过内容理解。原有进度仍保留。</p><button className="learning-secondary" disabled={busy} onClick={startReviewed}>另建经过整理的 Deep Agents 入门任务</button></div>}
+        {!plan.method && <div className="learning-alert"><p>这是旧版 README 切片任务，未经过内容理解。原有进度仍保留。</p><button className="learning-secondary" disabled={busy} onClick={() => startReviewed()}>另建经过整理的 Deep Agents 入门任务</button></div>}
+        {isOutdatedReviewedPlan(plan) && <div className="learning-alert"><p>这份入门课程有内容修订，更新不改变你的进度与笔记。</p><button className="learning-secondary" disabled={busy} onClick={() => startReviewed(true)}>更新本课程（保留进度）</button></div>}
         {plan.coverage && <p className="learning-footnote">{plan.method === "ai" ? "AI 整理 · " : "课程整理 · "}{plan.coverage}</p>}
         <section className="learning-overview">
           <label>我的资料<select aria-label="切换学习资料" value={plan.id} onChange={(event) => { commit({ ...library, activePlanId: event.target.value }); setNotice(""); }}>
@@ -167,12 +188,14 @@ export default function LearningPage() {
         </section>
         <div className="learning-workspace">
           <section className="learning-current" aria-label="当前学习任务">
-            <div className="learning-task-meta"><span>当前小任务</span><span>阅读 + 回想 · 约 5 分钟</span></div>
+            <div className="learning-task-meta"><span>当前小课</span><span>{readingLabel(active)}</span></div>
             <h2>{active.title}</h2>
             {active.goal && <p className="learning-goal">这一小步学会：{active.goal}</p>}
             <p className="learning-source">{active.sourcePath || `原文第 ${active.sourceLine} 行起`}{(active.sourceUrl || plan.sourceUrl) && <> · <a href={active.sourceUrl || plan.sourceUrl!} target="_blank" rel="noopener noreferrer">{active.sourcePath ? "核对章节原文 ↗" : "查看原始资料 ↗"}</a></>}</p>
             <details open key={active.id}><summary>{plan.method ? "先弄懂这个概念" : "旧版原文片段"}</summary><div className="learning-excerpt">{active.excerpt}</div></details>
-            <div className="learning-practice"><h3>再花一分钟，想一想</h3><p>{active.practice}</p></div>
+            {active.code && <section className="learning-code"><h3>读代码 / 推演过程</h3><pre><code>{active.code}</code></pre>{active.codeExplanation && <p>{active.codeExplanation}</p>}</section>}
+            <p className="learning-footnote">阅读参考按正文每分钟 300–500 字估算，不含代码推演与练习；不是学习计时或完成承诺。方便时停下即可。</p>
+            <div className="learning-practice"><h3>先独立推演，再看参考</h3><p>{active.practice}</p></div>
             {active.answer && <details className="learning-answer" key={`answer-${active.id}`}><summary>想好后，查看参考思路</summary><p>{active.answer}</p></details>}
             <label className="learning-note">我的理解 / 下次想问的问题<textarea rows={3} maxLength={2000} value={active.note} onChange={(event) => updateTask(active.id, { note: event.target.value })} placeholder="可以写一句，也可以先留空。笔记自动保存。" /></label>
             <div className="learning-checks"><label><input type="checkbox" checked={active.completed} onChange={(event) => updateTask(active.id, { completed: event.target.checked })} />这次已学过</label><label><input type="checkbox" checked={active.revisit} onChange={(event) => updateTask(active.id, { revisit: event.target.checked })} />还想再看</label></div>
@@ -183,7 +206,7 @@ export default function LearningPage() {
             <div className="learning-filters">{([["all", "全部"], ["pending", "待学习"], ["revisit", "想再看"]] as const).map(([value, label]) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}</div>
             <ol>{plan.tasks.filter((task) => filter === "all" || (filter === "pending" ? !task.completed : task.revisit)).map((task) => <li key={task.id} className={task.id === active.id ? "is-active" : ""}>
               <input type="checkbox" aria-label={`标记已学过：${task.title}`} checked={task.completed} onChange={(event) => updateTask(task.id, { completed: event.target.checked })} />
-              <button onClick={() => selectTask(task.id)} aria-current={task.id === active.id ? "step" : undefined}>{task.title}<small>{task.revisit ? "想再看 · " : ""}约 5 分钟</small></button>
+              <button onClick={() => selectTask(task.id)} aria-current={task.id === active.id ? "step" : undefined}>{task.title}<small>{task.revisit ? "想再看 · " : ""}{readingLabel(task)}</small></button>
             </li>)}</ol>
             {!plan.tasks.some((task) => filter === "all" || (filter === "pending" ? !task.completed : task.revisit)) && <p>这里暂时没有任务。</p>}
           </aside>

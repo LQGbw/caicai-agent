@@ -11,6 +11,11 @@
 
 ## 2026-10-25 — Five-minute learning activity requested by first user
 
+- Follow-up real-use failure: the reviewed starter mixed coffee examples into Deep Agents and labeled tiny summaries “5 minutes.” Replace them with eight source-focused lessons using weather and research examples, explanatory text, clearly labeled code/pseudocode, and substantive self-checks. This is a content-quality correction, not new scope.
+- Remove fixed duration promises. Show body character count and heuristic reading range (300–500 characters/minute), excluding code/exercises; do not infer mastery from time or checkmarks.
+- Introduce an optional starter content revision. Update only the eight identifiable shipped tasks, keeping plan IDs, imported dates, current task, notes, completed and revisit flags. Never overwrite unrelated imported or AI plans.
+- AI imports require fuller explanations and source-aligned examples, support code/commentary fields, and reject undersized summaries. No grading, timers or cross-device storage added.
+
 - The user clarified the product is a general practice and learning assistant, with grocery, coffee, and fitness as initial scenarios, and explicitly requested a GitHub/material-to-learning-task demo for spare five-minute sessions.
 - This is a new requested validation direction, not evidence of retention or a completed usage study. Add a bounded `/learn` experiment without rewriting the grocery workflow.
 - The public demo splits provided source sections into short reading and recall tasks without a paid model. Label this limitation; it is not a full codebase analysis or personalized AI curriculum.

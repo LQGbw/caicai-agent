@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     if (bundle.sources.some((item) => item.text.length < 40)) throw new Error("正文不足，请提供实际章节。");
     const context = bundle.sources.map((item) => ({ id: item.id, path: item.path, text: item.text.slice(0, 25000), truncated: item.text.length > 25000 }));
     if (context.some((item) => item.truncated)) bundle.coverage += " 部分长文只读取前 25000 字符，不代表整章覆盖。";
-    const output = await generateText(settings, learningInstructions, JSON.stringify({ goal: input.goal || "零基础，先理解概念，能在手机上学习", sources: context }), 6000);
+    const output = await generateText(settings, learningInstructions, JSON.stringify({ goal: input.goal || "零基础，先理解概念，能在手机上学习", sources: context }), 10000);
     const plan = toLearningPlan(output, bundle);
     if (!input.repository) for (const task of plan.tasks) delete task.sourceUrl;
     return Response.json(plan, { headers: { "Cache-Control": "no-store" } });

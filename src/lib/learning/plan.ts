@@ -2,11 +2,13 @@ import { z } from "zod";
 
 export const taskSchema = z.object({
   id: z.string().max(80), title: z.string().max(180),
-  excerpt: z.string().max(1200), sourceLine: z.number().int().positive(),
-  practice: z.string().max(300), completed: z.boolean(), revisit: z.boolean(),
+  excerpt: z.string().max(6000), sourceLine: z.number().int().positive(),
+  practice: z.string().max(1200), completed: z.boolean(), revisit: z.boolean(),
   note: z.string().max(2000),
   goal: z.string().max(300).optional(),
-  answer: z.string().max(1000).optional(),
+  answer: z.string().max(2000).optional(),
+  code: z.string().max(3000).optional(),
+  codeExplanation: z.string().max(2500).optional(),
   sourceUrl: z.string().url().max(800).optional(),
   sourcePath: z.string().max(300).optional(),
 });
@@ -17,6 +19,7 @@ export const planSchema = z.object({
   activeTaskId: z.string().nullable(),
   method: z.enum(["legacy", "reviewed", "ai"]).optional(),
   coverage: z.string().max(1000).optional(),
+  contentRevision: z.number().int().positive().optional(),
 });
 export const librarySchema = z.object({
   version: z.literal(1), plans: z.array(planSchema).max(10), activePlanId: z.string().nullable(),
@@ -26,6 +29,13 @@ export type LearningTask = z.infer<typeof taskSchema>;
 export type LearningLibrary = z.infer<typeof librarySchema>;
 export const emptyLibrary: LearningLibrary = { version: 1, plans: [], activePlanId: null };
 export const storageKey = "practice-learning-v1";
+
+export function readingLabel(task: LearningTask): string {
+  const characters = task.excerpt.replace(/\s/g, "").length;
+  const fast = Math.max(1, Math.ceil(characters / 500));
+  const slow = Math.max(fast, Math.ceil(characters / 300));
+  return `正文 ${characters} 字 · 阅读参考 ${fast === slow ? fast : `${fast}–${slow}`} 分钟`;
+}
 
 export function parseRepository(value: string): { owner: string; repo: string; url: string } {
   const url = new URL(value.trim());

@@ -1,12 +1,12 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { toLearningPlan } from "./generate";
-import { reviewedDeepAgentsPlan } from "./reviewed-course";
+import { isOutdatedReviewedPlan, reviewedDeepAgentsPlan, upgradeReviewedLibrary } from "./reviewed-course";
 import { loadLearningSources, type SourceBundle } from "./sources";
-import { librarySchema } from "./plan";
+import { librarySchema, readingLabel } from "./plan";
 
 const bundle: SourceBundle = { title: "课程", url: "https://github.com/test/course", chapters: [], coverage: "只读第一章",
   sources: [{ id: "source-1", path: "content/ch01.md", text: "可信正文", url: "https://github.com/test/course/blob/main/content/ch01.md", revision: "abc" }] };
-const task = { title: "认识工具如何获取真实信息", goal: "能够解释模型与工具各自负责的任务", explanation: "模型不直接知道用户库存，需要调用工具读取真实记录。".repeat(8), practice: "查询历史冲煮结果时，工具应该读取哪些数据？", answer: "读取用户确认的豆子、参数和口感反馈，不编造记录。", sourceId: "source-1" };
+const task = { title: "认识工具如何获取真实信息", goal: "能够解释模型与工具各自负责的任务", explanation: "天气工具返回结果后，模型才能根据实际结果组织回答，工具名称不等于已接入真实服务。".repeat(15), practice: "推演天气工具调用过程：分别说明谁提出调用，谁运行函数，以及函数结果为何必须返回模型才能形成最终回答。", answer: "模型提出工具调用及参数，框架执行函数，再把返回结果放入消息交回模型。固定演示天气只能证明调用链路，不能证明数据真实。", sourceId: "source-1" };
 
 afterEach(() => vi.unstubAllGlobals());
 describe("grounded lessons", () => {
@@ -24,6 +24,39 @@ describe("grounded lessons", () => {
     expect(plan.tasks.every((item) => item.goal && item.answer && item.sourcePath?.startsWith("content/ch0"))).toBe(true);
     const restored = librarySchema.parse({ version: 1, plans: [plan], activePlanId: plan.id });
     expect(restored.plans[0].tasks[0].answer).toBe(plan.tasks[0].answer);
+    expect(plan.tasks.every((item) => item.excerpt.length >= 500 && item.code && item.codeExplanation)).toBe(true);
+    expect(JSON.stringify(plan)).not.toMatch(/咖啡|鸡腿|磨豆/);
+    expect(readingLabel(plan.tasks[0])).toMatch(/正文 \d+ 字 · 阅读参考/);
+    expect(readingLabel({ ...plan.tasks[0], excerpt: "字".repeat(100) })).toContain("1 分钟");
+    expect(readingLabel({ ...plan.tasks[0], excerpt: "字".repeat(1600) })).toContain("4–6 分钟");
+  });
+  it("upgrades only identified starter content without changing personal records", () => {
+    const fresh = reviewedDeepAgentsPlan();
+    const old = structuredClone(fresh); delete old.contentRevision;
+    old.tasks[0].excerpt = "旧的短介绍";
+    old.tasks[0].note = "我的原笔记"; old.tasks[0].completed = true; old.tasks[1].revisit = true;
+    old.activeTaskId = old.tasks[4].id;
+    const ai = { ...structuredClone(old), id: "my-ai-plan", method: "ai" as const };
+    const library = librarySchema.parse({ version: 1, plans: [old, ai], activePlanId: old.id });
+    const upgraded = upgradeReviewedLibrary(library, fresh);
+    expect(upgraded.plans[0].id).toBe(old.id);
+    expect(upgraded.plans[0].importedAt).toBe(old.importedAt);
+    expect(upgraded.plans[0].activeTaskId).toBe(old.activeTaskId);
+    expect(upgraded.plans[0].tasks[0]).toMatchObject({ completed: true, note: "我的原笔记" });
+    expect(upgraded.plans[0].tasks[1].revisit).toBe(true);
+    expect(upgraded.plans[0].tasks[0].excerpt).toBe(fresh.tasks[0].excerpt);
+    expect(upgraded.plans[1]).toEqual(ai);
+    expect(isOutdatedReviewedPlan(upgraded.plans[0])).toBe(false);
+    expect(library.plans[0].tasks[0].excerpt).toBe("旧的短介绍");
+    expect(() => upgradeReviewedLibrary(library, { ...fresh, tasks: fresh.tasks.slice(1) })).toThrow();
+    expect(upgradeReviewedLibrary(upgraded, fresh)).toEqual(upgraded);
+  });
+  it("rejects a thin summary instead of displaying it as a complete lesson", () => {
+    expect(() => toLearningPlan(JSON.stringify({ tasks: [task, task, { ...task, explanation: "只有摘要".repeat(30) }] }), bundle)).toThrow();
+    const withCode = { ...task, code: "# 伪代码\ncall_tool()", codeExplanation: "这是解释执行顺序的伪代码，不是可运行 API。" };
+    const plan = toLearningPlan(JSON.stringify({ tasks: [withCode, task, task] }), bundle);
+    expect(plan.tasks[0].code).toBe(withCode.code);
+    expect(librarySchema.parse({ version: 1, plans: [plan], activePlanId: plan.id }).plans[0].tasks[0].codeExplanation).toBe(withCode.codeExplanation);
   });
   it("reads real content files instead of README badges", async () => {
     const fetcher = vi.fn(async (url: string) => {
