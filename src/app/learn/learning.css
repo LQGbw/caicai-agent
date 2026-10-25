@@ -15,7 +15,7 @@
 .learning-import { max-width: 760px; margin-bottom: 24px; }
 .learning-import form { display: grid; gap: 18px; }
 .learning-import label, .learning-note, .learning-overview label { display: grid; gap: 8px; font-size: 14px; font-weight: 700; }
-.learning-import input, .learning-import textarea, .learning-note textarea, .learning-overview select { width: 100%; min-height: 46px; border: 1px solid #ccd9ce; border-radius: 12px; background: #fcfdfb; color: var(--ink); padding: 12px; font-size: 16px; }
+.learning-import input, .learning-import textarea, .learning-import select, .learning-note textarea, .learning-overview select { width: 100%; min-height: 46px; border: 1px solid #ccd9ce; border-radius: 12px; background: #fcfdfb; color: var(--ink); padding: 12px; font-size: 16px; }
 .learning-import textarea, .learning-note textarea { resize: vertical; line-height: 1.65; }
 .learning-import label small { color: var(--muted); font-weight: 400; }
 .learning-tabs, .learning-filters { display: flex; gap: 6px; margin-bottom: 20px; }
@@ -34,6 +34,8 @@
 .learning-task-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; color: var(--green); font-size: 12px; margin-bottom: 16px; }
 .learning-source { color: var(--muted); font-size: 12px; line-height: 1.6; }
 .learning-source a { color: var(--green); text-decoration: underline; }
+.learning-goal { color: var(--green); font-size: 14px; line-height: 1.65; padding: 12px; border-radius: 10px; background: var(--green-soft); }
+.learning-answer p { padding: 15px; background: var(--paper); border-radius: 12px; font-size: 14px; line-height: 1.7; }
 .learning-current details { margin: 22px 0; }
 .learning-current summary { cursor: pointer; color: var(--green); font-weight: 700; font-size: 14px; }
 .learning-excerpt { font: inherit; font-size: 15px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; padding: 18px; margin: 12px 0; border-radius: 12px; background: var(--paper); }

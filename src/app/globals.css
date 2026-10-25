@@ -580,6 +580,12 @@ a {
   line-height: 1.5;
 }
 
+.form-stack select { min-height: 45px; max-width: 100%; border: 1px solid var(--line); border-radius: 11px; padding: 10px; font-size: 16px; background: #fbfcfa; }
+.settings-actions { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 15px 0 max(15px, env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); border-top: 1px solid var(--line); margin-top: 20px; }
+.settings-actions .save-button { margin-top: 0; width: auto; }
+.settings-test { min-height: 46px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--paper); color: var(--green); cursor: pointer; }
+.settings-test:disabled { opacity: .5; }
+
 .toggle-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

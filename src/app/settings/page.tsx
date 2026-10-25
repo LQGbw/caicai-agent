@@ -11,12 +11,16 @@ export default function SettingsPage() {
   const [transcriptionModel, setTranscriptionModel] = useState("");
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [protocol, setProtocol] = useState<PublicAiSettings["protocol"]>("auto");
 
   useEffect(() => {
     fetch("/api/settings/ai")
-      .then((response) => response.json())
+      .then(async (response) => { if (!response.ok) throw new Error("设置读取失败"); return response.json(); })
       .then((value: PublicAiSettings) => {
         setSettings(value);
+        setProtocol(value.protocol ?? "auto");
         setBaseUrl(value.baseUrl);
         setModel(value.model);
         setTranscriptionModel(value.transcriptionModel);
@@ -28,6 +32,7 @@ export default function SettingsPage() {
     event.preventDefault();
     setSaving(true);
     setNotice(null);
+    try {
     const response = await fetch("/api/settings/ai", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -36,6 +41,7 @@ export default function SettingsPage() {
         ...(apiKey ? { apiKey } : {}),
         model,
         transcriptionModel,
+        protocol,
       }),
     });
     const data = await response.json();
@@ -45,8 +51,22 @@ export default function SettingsPage() {
       return;
     }
     setSettings(data as PublicAiSettings);
+    setBaseUrl(data.baseUrl);
     setApiKey("");
+    setDirty(false);
     setNotice("已安全保存到服务器，新对话会立即使用。");
+    } catch { setNotice("保存请求失败，尚未保存。请检查网络或重新登录；已填内容仍保留在本页。"); }
+    finally { setSaving(false); }
+  }
+
+  async function testConnection() {
+    setTesting(true); setNotice(null);
+    try {
+      const response = await fetch("/api/settings/ai/test", { method: "POST" });
+      const data = await response.json();
+      setNotice(response.ok ? `连接通过：${data.model}（${data.protocol}）。这验证文本连接，不代表图片和语音均受支持。` : data.error || "连接失败。");
+    } catch { setNotice("连接测试未完成，请检查网络或登录状态。"); }
+    finally { setTesting(false); }
   }
 
   return (
@@ -57,24 +77,27 @@ export default function SettingsPage() {
         <span>Key 只保存在服务器 Docker 数据卷，不会显示在页面源码或 GitHub。</span>
       </div>
 
-      {!settings ? <div className="loading-card">正在读取 API 设置…</div> : (
-        <form className="settings-card" onSubmit={save}>
+      {!settings ? <div className="loading-card" role="status">{notice || "正在读取 API 设置…"}</div> : (
+        <form className="settings-card" onSubmit={save} onChange={() => setDirty(true)}>
+          {dirty && <p className="form-notice" role="status">已填写，但尚未保存。请点击下方“保存 API 设置”后再离开。</p>}
           <div className={`connection-status ${settings.apiKeyConfigured ? "connected" : "demo"}`}>
             <span />
             <div>
-              <strong>{settings.apiKeyConfigured ? `已配置 ${settings.apiKeyHint ?? "API Key"}` : "当前为演示模式"}</strong>
+              <strong>{settings.apiKeyConfigured ? `服务器已保存 ${settings.apiKeyHint ?? "API Key"}` : "服务器尚未保存 API Key"}</strong>
               <small>{settings.source === "saved" ? "使用网页保存的服务器设置" : settings.source === "environment" ? "使用 Docker 环境变量" : "配置 Key 后启用图片理解和真实 Agent"}</small>
             </div>
           </div>
 
           <div className="form-stack">
-            <label>API 地址<input type="url" value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="https://cf.api.fan/v1" inputMode="url" /><small>必须是 HTTPS；使用 OpenAI 官方时可留空。</small></label>
+            <label>接口协议<select value={protocol} onChange={(event) => setProtocol(event.target.value as PublicAiSettings["protocol"])}><option value="auto">自动：Claude 用 Anthropic，第三方 GPT 用 Chat</option><option value="anthropic">Anthropic Messages（Claude）</option><option value="chat">OpenAI 兼容 Chat Completions</option><option value="responses">OpenAI Responses</option></select><small>选服务商支持的协议；模型名称不代表接口一定通用。</small></label>
+            <label>API 地址<input type="text" value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="https://api.example.com/v1" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} /><small>填写服务商的 API Base URL。会清理空格、补齐 https://，并移除误填的 /chat/completions 等接口后缀。官方 OpenAI 可留空。</small></label>
             <label>API Key<input type="password" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder={settings.apiKeyConfigured ? "留空表示保持现有 Key" : "输入新 Key"} autoComplete="new-password" /><small>保存后不再显示明文，仅显示末四位。</small></label>
-            <label>对话 / 图片模型 ID<input value={model} onChange={(event) => setModel(event.target.value)} placeholder="填写服务商支持 Responses API 和图片的模型 ID" /></label>
+            <label>对话 / 学习模型 ID<input value={model} onChange={(event) => setModel(event.target.value)} placeholder="例如服务商支持的 qwen-flash" /><small>Demo 优先低成本文本模型。模型 ID 必须以你购买的服务商列表为准。</small></label>
             <label>语音转写模型 ID<input value={transcriptionModel} onChange={(event) => setTranscriptionModel(event.target.value)} placeholder="gpt-4o-mini-transcribe" /><small>第三方服务如果不支持语音转写，语音按钮仍会报错，不影响文字和照片。</small></label>
           </div>
           {notice && <p className="form-notice" role="status">{notice}</p>}
-          <button className="save-button" disabled={saving}>{saving ? "正在安全保存…" : "保存 API 设置"}</button>
+          <div className="settings-actions"><button className="save-button" disabled={saving}>{saving ? "正在安全保存…" : "保存 API 设置"}</button>
+          <button type="button" className="settings-test" disabled={testing || dirty || !settings.apiKeyConfigured} onClick={testConnection}>{testing ? "正在测试…" : "测试已保存的连接"}</button></div>
         </form>
       )}
     </main>

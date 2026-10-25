@@ -1,5 +1,14 @@
 # Build log
 
+## 2026-10-25 — Learning content and API configuration correction
+
+- Real self-use failed on `datawhalechina/deepagents-in-action`: slicing README HTML, badges and directory listings created incomprehensible tasks. Replace that path with actual `content/` or `docs/` Markdown discovery and explicit reading coverage.
+- Provide an attributed, editorial eight-task introduction based on chapters 1–2, explicitly labeled as reviewed rather than model-generated. Existing browser progress is preserved, and old slices are identified as legacy.
+- Add a protected AI planning endpoint that reads actual selected chapters, adapts to a stated goal, returns explanatory tasks and reference reasoning, validates fields and rejects citations to unread material. Never expose configured paid model execution publicly.
+- Settings logs showed GET requests but no PATCH/save request; runtime had no key or settings file. Make unsaved edits visible and add a test of the saved text-model connection, without claiming that this tests images or transcription.
+- Add explicit provider protocol selection (Responses, compatible Chat, Anthropic Messages) instead of assuming third-party Claude uses Responses. Model output still requests validated tools; it never writes storage itself.
+- User reported `invalid url` when saving. Normalize whitespace, missing HTTPS schemes and accidentally pasted endpoint suffixes; return field-specific Chinese validation errors. Keep secrets out of logs and output. OCR expansion was explicitly deferred in favor of a low-cost text demo.
+
 ## 2026-10-25 — Five-minute learning activity requested by first user
 
 - The user clarified the product is a general practice and learning assistant, with grocery, coffee, and fitness as initial scenarios, and explicitly requested a GitHub/material-to-learning-task demo for spare five-minute sessions.

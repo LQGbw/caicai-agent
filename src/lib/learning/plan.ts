@@ -5,12 +5,18 @@ export const taskSchema = z.object({
   excerpt: z.string().max(1200), sourceLine: z.number().int().positive(),
   practice: z.string().max(300), completed: z.boolean(), revisit: z.boolean(),
   note: z.string().max(2000),
+  goal: z.string().max(300).optional(),
+  answer: z.string().max(1000).optional(),
+  sourceUrl: z.string().url().max(800).optional(),
+  sourcePath: z.string().max(300).optional(),
 });
 export const planSchema = z.object({
   id: z.string().max(80), title: z.string().max(180),
   sourceUrl: z.string().url().max(600).nullable(),
   importedAt: z.string(), tasks: z.array(taskSchema).min(1).max(120),
   activeTaskId: z.string().nullable(),
+  method: z.enum(["legacy", "reviewed", "ai"]).optional(),
+  coverage: z.string().max(1000).optional(),
 });
 export const librarySchema = z.object({
   version: z.literal(1), plans: z.array(planSchema).max(10), activePlanId: z.string().nullable(),

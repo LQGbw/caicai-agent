@@ -2,9 +2,9 @@
 
 ## Learning activity experiment
 
-`/learn` is a bounded multi-scenario exploration beside the grocery app. `/api/learning/source` reads only the public README of a validated GitHub repository, using a fixed GitHub API host, bounded response size, timeout, short cache and request budget. It never reads private model settings or invokes a paid model.
+`/learn` is a bounded multi-scenario exploration beside the grocery app. `/api/learning/source` discovers actual Markdown in `content/` or `docs/` of a validated public GitHub repository, using a fixed GitHub API host, bounded response size, timeout, short cache and request budget. It reports which files were read and which were not. README is a labeled fallback only.
 
-The browser splits provided Markdown into source-linked reading slices and recall prompts. This is explicitly a rule-based preview, not AI codebase analysis. Versioned, validated browser-local state stores task selection, self-reported completion, revisit flags and notes. Backup export/import supports manual transfer; account sync and verified skill assessment are not implemented.
+`/api/learning/starter` provides explicitly reviewed, attributed introductory lessons without a model. Protected `/api/learning/plan` uses saved provider settings to generate explanatory lessons from actual source documents, validates the result and binds citations to known source IDs. Paid generation and settings remain protected by proxy authentication. Old browser plans remain readable and are marked legacy; new lessons include goals and reference reasoning. Versioned, validated browser-local state stores progress and notes; backup export/import supports manual transfer. Account sync and verified skill assessment are not implemented.
 
 ```text
 Browser (text / photo / recorded audio)

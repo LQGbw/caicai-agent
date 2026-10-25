@@ -5,6 +5,8 @@ import { resolveAiSettings } from "@/lib/settings/ai-settings";
 import { runDemoAgent } from "./demo-agent";
 import { executeGroceryTool, safeToolError } from "./tool-executor";
 import { groceryTools } from "./tool-definitions";
+import { effectiveProtocol } from "@/lib/ai/text";
+import { runCompatibleAgent } from "./compatible-agent";
 
 const instructions = `你是一个只服务当前用户的买菜决策 Agent，面向做饭小白。
 
@@ -36,6 +38,7 @@ function buildUserContent(input: AgentRunInput) {
 export async function runGroceryAgent(input: AgentRunInput): Promise<AgentDecision> {
   const settings = await resolveAiSettings();
   if (!settings.apiKey) return runDemoAgent(input);
+  if (effectiveProtocol(settings) !== "responses") return runCompatibleAgent(input, settings, instructions);
 
   const client = new OpenAI({ apiKey: settings.apiKey, baseURL: settings.baseUrl });
   const model = settings.model;
